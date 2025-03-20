@@ -1,10 +1,8 @@
-from django.contrib import admin
-from django.urls import path, include
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import path
+from .views import HabitListCreateView, HabitRetrieveUpdateDestroyView, PublicHabitListView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('habits.urls')),
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('habits/', HabitListCreateView.as_view(), name='habit-list-create'),
+    path('habits/<int:pk>/', HabitRetrieveUpdateDestroyView.as_view(), name='habit-detail'),
+    path('public-habits/', PublicHabitListView.as_view(), name='public-habits'),
 ]

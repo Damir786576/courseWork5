@@ -19,6 +19,8 @@ INSTALLED_APPS = [
     'habits',
     'rest_framework',
     'corsheaders',
+    'drf_yasg',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -104,3 +106,5 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
+
+AUTH_USER_MODEL = 'users.CustomUser'

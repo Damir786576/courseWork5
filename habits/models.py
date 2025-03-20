@@ -2,13 +2,15 @@ from datetime import datetime, timedelta
 
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from habit_tracker import settings
+from .tasks import send_telegram_reminder
+
 
 class Habit(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="habits")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="habits")
     place = models.CharField(max_length=100, verbose_name="Место")
     time = models.TimeField(verbose_name="Время")
     action = models.CharField(max_length=200, verbose_name="Действие")
@@ -45,10 +47,9 @@ class Habit(models.Model):
 
 
 @receiver(post_save, sender=Habit)
-def schedule_habit_reminder(sender, instance, created, send_telegram_reminder=None, **kwargs):
+def schedule_habit_reminder(sender, instance, created, **kwargs):
     if created:
         chat_id = 5606097177
-
         now = datetime.now()
         habit_time = datetime.combine(now.date(), instance.time)
         if habit_time < now:
