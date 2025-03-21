@@ -24,5 +24,5 @@ class HabitRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 
 class PublicHabitListView(generics.ListAPIView):
     serializer_class = HabitSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Habit.objects.filter(is_public=True)
