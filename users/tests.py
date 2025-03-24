@@ -3,6 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from .models import CustomUser
 
+
 class CustomUserModelTest(TestCase):
     def setUp(self):
         self.user = CustomUser.objects.create_user(

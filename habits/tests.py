@@ -1,13 +1,19 @@
 from django.test import TestCase
+from django.db.models.signals import post_save
 from rest_framework.test import APIClient
 from rest_framework import status
-from django.urls import reverse
-from .models import Habit
+from .models import Habit, schedule_habit_reminder
 from users.models import CustomUser
+
 
 class HabitModelTest(TestCase):
     def setUp(self):
-        self.user = CustomUser.objects.create_user(email='test@example.com', password='testpass123')
+        post_save.disconnect(receiver=schedule_habit_reminder, sender=Habit)
+        self.user = CustomUser.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
         self.habit = Habit.objects.create(
             user=self.user,
             action='Test Habit',
@@ -17,6 +23,9 @@ class HabitModelTest(TestCase):
             duration=60,
             is_public=True
         )
+
+    def tearDown(self):
+        post_save.connect(receiver=schedule_habit_reminder, sender=Habit)
 
     def test_habit_creation(self):
         self.assertEqual(self.habit.action, 'Test Habit')
@@ -39,21 +48,30 @@ class HabitModelTest(TestCase):
 
 class HabitAPITest(TestCase):
     def setUp(self):
+        post_save.disconnect(receiver=schedule_habit_reminder, sender=Habit)
         self.client = APIClient()
-        self.user = CustomUser.objects.create_user(email='user@example.com', password='pass123')
+        self.user = CustomUser.objects.create_user(
+            username='apiuser',
+            email='user@example.com',
+            password='pass123'
+        )
         self.client.force_authenticate(user=self.user)
-        Habit.objects.create(user=self.user, action='Private Habit', time='10:00:00', place='Gym', is_public=False)
-        Habit.objects.create(user=self.user, action='Public Habit', time='11:00:00', place='Park', is_public=True)
+        Habit.objects.all().delete()
+        Habit.objects.create(user=self.user, action='Private Habit', time='10:00:00', place='Gym', periodicity=1, duration=60, is_public=False)
+        Habit.objects.create(user=self.user, action='Public Habit', time='11:00:00', place='Park', periodicity=1, duration=60, is_public=True)
+
+    def tearDown(self):
+        post_save.connect(receiver=schedule_habit_reminder, sender=Habit)
 
     def test_habit_list_authenticated(self):
         response = self.client.get('/api/habits/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['results']), 2)
+        self.assertEqual(response.data['count'], 2)
 
     def test_public_habit_list(self):
         self.client.logout()
         response = self.client.get('/api/public-habits/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['action'], 'Public Habit')
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['action'], 'Public Habit')
