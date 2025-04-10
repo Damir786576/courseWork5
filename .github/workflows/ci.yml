@@ -79,11 +79,3 @@ jobs:
           echo "REDIS_URL=redis://:default_redis_pass@redis:6379/0" >> .env
           echo "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}" >> .env
         EOF
-
-    - name: Restart application
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
-          cd ${{ secrets.DEPLOY_DIR }}
-          docker-compose down
-          docker-compose up --build -d
-        EOF
