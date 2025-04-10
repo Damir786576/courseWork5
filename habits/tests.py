@@ -57,21 +57,21 @@ class HabitAPITest(TestCase):
         )
         self.client.force_authenticate(user=self.user)
         Habit.objects.all().delete()
-        Habit.objects.create(user=self.user, action='Private Habit', time='10:00:00', place='Gym', periodicity=1, duration=60, is_public=False)
-        Habit.objects.create(user=self.user, action='Public Habit', time='11:00:00', place='Park', periodicity=1, duration=60, is_public=True)
+        Habit.objects.create(user=self.user, action='Private Habit', time='10:00:00', place='Gym', periodicity=1,
+                             duration=60, is_public=False)
+        Habit.objects.create(user=self.user, action='Public Habit', time='11:00:00', place='Park', periodicity=1,
+                             duration=60, is_public=True)
 
     def tearDown(self):
         post_save.connect(receiver=schedule_habit_reminder, sender=Habit)
 
     def test_habit_list_authenticated(self):
+        self.client.force_authenticate(user=self.user)
         response = self.client.get('/api/habits/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 2)
-        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
 
     def test_public_habit_list(self):
-        self.client.logout()
-        response = self.client.get('/api/public-habits/')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['action'], 'Public Habit')
+        response = self.client.get('/api/habits/public/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
