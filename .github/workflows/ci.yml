@@ -45,7 +45,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.12'
+        python-version: '3.10'
 
     - name: Generate SECRET_KEY
       run: |
@@ -71,14 +71,20 @@ jobs:
           echo "SECRET_KEY=${{ env.SECRET_KEY }}" > .env
           echo "DEBUG=False" >> .env
           echo "ALLOWED_HOSTS=158.160.87.62,localhost" >> .env
-          echo "NAME=drf" >> .env
-          echo "USER=drf_user" >> .env
-          echo "PASSWORD=drf_password" >> .env
-          echo "HOST=db" >> .env
-          echo "PORT=5432" >> .env
-          echo "REDIS_PASSWORD=default_redis_pass" >> .env
-          echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
-          echo "EMAIL_HOST=${{ secrets.EMAIL_HOST }}" >> .env
-          echo "EMAIL_HOST_USER=${{ secrets.EMAIL_HOST_USER }}" >> .env
-          echo "EMAIL_HOST_PASSWORD=${{ secrets.EMAIL_HOST_PASSWORD }}" >> .env
+          echo "POSTGRES_DB=habit_tracker_db" >> .env
+          echo "POSTGRES_USER=habit_user" >> .env
+          echo "POSTGRES_PASSWORD=habit_password" >> .env
+          echo "POSTGRES_HOST=db" >> .env
+          echo "POSTGRES_PORT=5432" >> .env
+          echo "REDIS_URL=redis://:default_redis_pass@redis:6379/0" >> .env
+          echo "TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}" >> .env
         EOF
+
+    - name: Restart application
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
+          cd ${{ secrets.DEPLOY_DIR }}
+          docker-compose down
+          docker-compose up --build -d
+        EOF
+        
