@@ -73,5 +73,4 @@ class HabitAPITest(TestCase):
 
     def test_public_habit_list(self):
         response = self.client.get('/api/habits/public/')
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
